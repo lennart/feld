@@ -1,0 +1,12 @@
+{
+  "name": "feld",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@lab.al0.de:lennart/feld.git",
+  "author": "Lennart Melzer <lennart@melzer.it>",
+  "license": "MIT",
+  "dependencies": {
+    "leaflet": "^1.7.1",
+    "regenerator-runtime": "^0.13.7"
+  }
+}

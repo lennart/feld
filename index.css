@@ -1,0 +1,27 @@
+html, body {
+    padding: 0;
+    margin: 0;
+}
+
+html, body, #map {
+    width: 100vw;
+    height: 100%;
+}
+
+.self-marker {
+    width: 20px;
+    height: 20px;
+    background-color: red;
+}
+
+.stateful {
+    display: none;
+}
+
+.current-state-init .state-init {
+    display: block !important;
+}
+
+.current-state-map .state-map {
+    display: block !important;
+}
