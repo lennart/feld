@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/css/ol.css" type="text/css">
+    <style>
+     .map {
+       height: 400px;
+       width: 100%;
+     }
+    </style>
+    <script src="https://cdn.jsdelivr.net/gh/openlayers/openlayers.github.io@master/en/v6.5.0/build/ol.js"></script>
+    <title>FELD_</title>
+  </head>
+  <body>
+    <h2>My Map</h2>
+    <div id="map" class="map"></div>
+    <script type="text/javascript">
+     function toGeoJSON(spots) {
+       return {
+         type: "FeatureCollection",
+         features: spots.map(function(spot) {
+           return {
+             type: "Feature",
+             geometry: {
+               type: "Point",
+               coordinates: [spot.location.longitude, spot.location.latitude]
+             },
+             properties: {
+               radius: spot.radius
+             }
+           }
+         })
+       }
+     }
+     
+     async function init() {
+       try {
+         const res = await fetch('http://localhost:5000/progressions/1/spots')
+
+         const spots = await res.json()
+         console.log("spots raw", spots)
+
+         initMap(toGeoJSON(spots))
+       } catch(err) {
+         console.error(err)
+       }
+     }
+     function initMap(geoJSON) {
+       console.log("spots GEO JSON", geoJSON)
+       let spotsGeoJSON = new ol.format.GeoJSON().readFeatures(geoJSON, { featureProjection: "EPSG:3857" })
+       //let image = 
+       
+       // Create a vector layer to display the features within the GeoJSON source and
+       // applies a simple icon style to all features
+       /*
+          new ol.source.Vector({
+          url: 'http://localhost:5000/progressions/1/spots.geojson',
+          format: new ol.format.GeoJSON()
+          })
+        */
+       let spotsSource = new ol.source.Vector({  })
+
+       geoJSON.features.map(function(feature) {
+         spotsSource.addFeature(new ol.Feature(new ol.geom.Circle(ol.proj.fromLonLat(feature.geometry.coordinates), feature.properties.radius)))
+       })
+       
+       let spotsLayer = new ol.layer.Vector({
+         source: spotsSource,
+         /* style: function styleFeature(feature) {
+          *   return new ol.style.Style({
+          *     image: new ol.style.Circle({
+          *       radius: feature.getProperties().radius,
+          *       fill: null,
+          *       stroke: new ol.style.Stroke({color: 'red', width: 1}),
+          *     })
+          *   })
+          * } */
+       })
+       
+       let map = new ol.Map({
+         target: 'map',
+         layers: [
+           new ol.layer.Tile({
+             source: new ol.source.OSM()
+           }),
+           spotsLayer
+         ],
+         view: new ol.View({
+           center: ol.proj.fromLonLat([37.41, 8.82]),
+           zoom: 4
+         })
+       })
+
+       let extent = spotsLayer.getSource().getExtent()
+       
+       map.getView().fit(extent)
+
+       console.log("meters per unit", map.getView().getProjection().getMetersPerUnit())
+
+       window.spotsLayer = spotsLayer
+     }
+     init();
+    </script>
+  </body>
+</html>
