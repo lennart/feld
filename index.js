@@ -43,25 +43,52 @@ async function updateSurroundings({latitude, longitude, spots}) {
 
     console.log(surroundings)
 
-    const activeSpotIds = new Set(store.spots.filter(({ active }) => active).map(({ id }) => id))
+    const activeSpots = store.spots.filter(({ active }) => active)
+    const activeSpotIds = new Set(activeSpots.map(({ id }) => id))
     const surroundingSpotIds = new Set(surroundings.map(({ id }) => id))
 
     const spotsEntered = [...surroundingSpotIds].filter((x) => !activeSpotIds.has(x)).map((id) => store.spots.find((spot) => spot.id === id))
     const spotsLeft = [...activeSpotIds].filter((x) => !surroundingSpotIds.has(x)).map((id) => store.spots.find((spot) => spot.id === id))
-    
+
+    if (spotsEntered.find(({ globalStop }) => globalStop)) {
+      store.spots.filter(({ playing }) => playing).forEach((spot) => {
+        if (spot.canPlay) {
+          spot.source.disconnect(store.audioContext.destination)
+          spot.node.pause()
+        }
+        spot.active = false
+      })
+    }
+
     spotsEntered.forEach((spot) => {
-      spot.source.connect(store.audioContext.destination)
-      spot.node.play()
+      if (spot.canPlay) {
+        spot.source.connect(store.audioContext.destination)
+        spot.node.play()
+      }
       spot.active = true
     })
 
     spotsLeft.forEach((spot) => {
-      spot.source.disconnect(store.audioContext.destination)
-      spot.node.pause()
+      if (spot.canPlay) {
+        if (spot.oneShot) {
+          spot.node.addEventListener('ended', () => {
+            console.log(spot.id, 'ended')
+          })
+        } else {
+          spot.source.disconnect(store.audioContext.destination)
+          spot.node.pause()
+        }
+      }
       spot.active = false
     })
-    
-    console.log('currently active', activeSpotIds, 'new surroundings', surroundingSpotIds, 'entered', spotsEntered, 'left', spotsLeft)
+
+    console.log('entered',
+                JSON.stringify(
+                  spotsEntered.map(({ id, globalStop, oneShot, loop, canPlay, duration }) => {
+                    return `${id} - cp:${canPlay} gs:${globalStop} os:${oneShot} lo:${loop}`
+                  })
+    ))
+    console.log('left', spotsLeft.map(({id}) => id))
   } catch(err) {
     console.error(err)
   }
@@ -79,22 +106,50 @@ async function initMap() {
 
   const spots = await fetchSpots()
 
-  store.spots = spots.filter((spot) => !!spot.sound).map((spot) => {
-    const audioNode = document.createElement('audio')
-    audioNode.preload = 'none'
-    audioNode.src = `${apiUrl}${spot.sound.variants[0].path}`
-    audioNode.crossOrigin = "anonymous"
-    audioNode.addEventListener('play', () => console.log("playing", audioNode.src))
-    const source = store.audioContext.createMediaElementSource(audioNode)
+  const spotProto = {
+    active: false
+  }
+  store.spots = spots.map((spot) => {
+    let res = Object.create(spotProto, {
+      id: {
+        get() { return spot.id }
+      },
+      globalStop: {
+        get() { return !!spot.zone_options.global_stop }
+      },
+      oneShot: {
+        get() { return !!spot.zone_options.one_shot }
+      },
+      loop: {
+        get() { return !!spot.zone_options.loop }
+      },
+      playing: {
+        get() {
+          return this.node && !this.node.paused
+        }
+      }
+    })
 
-    return {
-      id: spot.id,
-      node: audioNode,
-      source: source,
-      active: false
+    if (spot.sound) {
+      const audioNode = document.createElement('audio')
+      audioNode.preload = 'none'
+      audioNode.src = `${apiUrl}${spot.sound.variants[0].path}`
+      audioNode.crossOrigin = "anonymous"
+      audioNode.loop = spot.zone_options.loop
+      //      audioNode.addEventListener('play', () => console.log("playing", audioNode.src))
+      audioNode.addEventListener('ended', () => console.log("ended", audioNode.src))
+
+      const source = store.audioContext.createMediaElementSource(audioNode)
+      res.source = source
+      res.node = audioNode
+      res.canPlay = true
+    } else {
+      res.canPlay = false
     }
+
+    return res
   })
-  
+
   const spotCircles = spots.map(({ location: { latitude, longitude }, radius }) => {
     return L.circle([latitude, longitude], {
       radius,
@@ -105,10 +160,12 @@ async function initMap() {
   })
 
   const spotFeatureGroup = L.featureGroup(spotCircles)
-  
+
   spotFeatureGroup.addTo(map)
   map.fitBounds(spotFeatureGroup.getBounds())
   let lastPosition = L.latLng(0,0)
+
+  let lastMarker
   map.on('locationfound', (e) => {
     if (!e.latlng.equals(lastPosition)) {
       const icon = L.divIcon({ className: 'self-marker' })
@@ -122,13 +179,18 @@ async function initMap() {
         longitude: e.latlng.lng,
         spots
       })
-      
-      selfMarker.addTo(map)
-      setTimeout(() => {
-        selfMarker.removeFrom(map)
-      }, 10000)
 
-      console.log("found you", e.latlng, e.accuracy)
+      selfMarker.addTo(map)
+      if (lastMarker) {
+        let fadingMarker = lastMarker
+        setTimeout(() => {
+          fadingMarker.removeFrom(map)
+        }, 10000)
+      }
+      lastMarker = selfMarker
+
+
+      console.log("you are somewhere", e.accuracy, "meters around", e.latlng)
       lastPosition = e.latlng
     }
   })
@@ -176,6 +238,5 @@ async function handleState(body) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  handleState(document.body)  
+  handleState(document.body)
 })
-

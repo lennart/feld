@@ -25,3 +25,9 @@ html, body, #map {
 .current-state-map .state-map {
     display: block !important;
 }
+
+.current-state-init {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
