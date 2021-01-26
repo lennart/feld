@@ -200,7 +200,6 @@ async function initMap() {
   })
   map.locate({
     watch: true,
-    setView: true,
     enableHighAccuracy: true
   })
 }
