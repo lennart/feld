@@ -53,10 +53,14 @@ async function updateSurroundings({latitude, longitude, spots}) {
     if (spotsEntered.find(({ globalStop }) => globalStop)) {
       store.spots.filter(({ playing }) => playing).forEach((spot) => {
         if (spot.canPlay) {
-          spot.source.disconnect(store.audioContext.destination)
           spot.node.pause()
+          spot.node.load() // to rewind
         }
-        spot.active = false
+        // TODO: make it clear how a global stop affects running audio nodes
+        // either
+        // 1. we set these spots to inactive and therefore leaving the global stop zone will play all sounds of zones you are currently in
+        // 2. we just stop sounds from the spots but leave them acitve, leaving the global stop zone will just do nothing (except from possibly stopping the sound attached to the global-stop zone itself)
+       // spot.active = false
       })
     }
 
@@ -75,8 +79,8 @@ async function updateSurroundings({latitude, longitude, spots}) {
             console.log(spot.id, 'ended')
           })
         } else {
-          spot.source.disconnect(store.audioContext.destination)
           spot.node.pause()
+          spot.node.load() // to rewind
         }
       }
       spot.active = false
@@ -136,7 +140,6 @@ async function initMap() {
       audioNode.src = `${apiUrl}${spot.sound.variants[0].path}`
       audioNode.crossOrigin = "anonymous"
       audioNode.loop = spot.zone_options.loop
-      //      audioNode.addEventListener('play', () => console.log("playing", audioNode.src))
       audioNode.addEventListener('ended', () => console.log("ended", audioNode.src))
 
       const source = store.audioContext.createMediaElementSource(audioNode)
