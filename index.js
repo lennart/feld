@@ -4,7 +4,8 @@ import 'regenerator-runtime/runtime'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-const apiUrl = 'https://192.168.2.118:5000'
+const rootUrl = 'https://192.168.2.118:5000'
+const apiUrl = `${rootUrl}/api`
 const progressionId = 14
 const states = ['init', 'map']
 const stateClasses = states.map((state) => `current-state-${state}`)
@@ -137,7 +138,7 @@ async function initMap() {
     if (spot.sound) {
       const audioNode = document.createElement('audio')
       audioNode.preload = 'none'
-      audioNode.src = `${apiUrl}${spot.sound.variants[0].path}`
+      audioNode.src = `${rootUrl}${spot.sound.variants[0].path}`
       audioNode.crossOrigin = "anonymous"
       audioNode.loop = spot.zone_options.loop
       audioNode.addEventListener('ended', () => console.log("ended", audioNode.src))
