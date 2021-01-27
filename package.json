@@ -8,5 +8,24 @@
   "dependencies": {
     "leaflet": "^1.7.1",
     "regenerator-runtime": "^0.13.7"
+  },
+  "scripts": {
+    "build": "webpack",
+    "watch": "webpack --watch",
+    "start": "webpack serve -c webpack.config.development.js --open"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.12.10",
+    "@babel/preset-env": "^7.12.11",
+    "babel-loader": "^8.2.2",
+    "css-loader": "^5.0.1",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^4.5.1",
+    "style-loader": "^2.0.0",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.18.0",
+    "webpack-assets-manifest": "^5.0.1",
+    "webpack-cli": "^4.2.0",
+    "webpack-dev-server": "^3.11.2"
   }
 }

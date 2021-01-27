@@ -1,46 +1,15 @@
 // see: https://github.com/parcel-bundler/parcel/issues/1762
 import 'regenerator-runtime/runtime'
-
 import L from 'leaflet'
+import './index.css'
 import 'leaflet/dist/leaflet.css'
 
-const rootUrl = 'https://192.168.2.118:5000'
-const apiUrl = `${rootUrl}/api`
-const progressionId = 14
-const states = ['init', 'map']
-const stateClasses = states.map((state) => `current-state-${state}`)
-const store = {
-  state: 'init',
-  spots: []
-}
+import './silence.mp3'
+import API from './api'
 
-async function fetchSpots() {
+async function updateSurroundings(store, { latitude, longitude }) {
   try {
-    const res = await fetch(`${apiUrl}/progressions/${progressionId}/spots`)
-
-    const spots = await res.json()
-
-    return spots
-  } catch(err) {
-    console.error(err)
-  }
-}
-
-async function fetchSurroundings({ latitude, longitude }) {
-  try {
-    const res = await fetch(`${apiUrl}/progressions/${progressionId}/surroundings?latitude=${latitude}&longitude=${longitude}`)
-
-    const surroundings = await res.json()
-
-    return surroundings
-  } catch(err) {
-    console.error(err)
-  }
-}
-
-async function updateSurroundings({latitude, longitude, spots}) {
-  try {
-    const surroundings = await fetchSurroundings({ latitude, longitude })
+    const surroundings = await store.api.fetchSurroundings({ latitude, longitude })
 
     console.log(surroundings)
 
@@ -61,7 +30,7 @@ async function updateSurroundings({latitude, longitude, spots}) {
         // either
         // 1. we set these spots to inactive and therefore leaving the global stop zone will play all sounds of zones you are currently in
         // 2. we just stop sounds from the spots but leave them acitve, leaving the global stop zone will just do nothing (except from possibly stopping the sound attached to the global-stop zone itself)
-       // spot.active = false
+        // spot.active = false
       })
     }
 
@@ -99,8 +68,11 @@ async function updateSurroundings({latitude, longitude, spots}) {
   }
 }
 
-async function initMap() {
-  let map = L.map('map', {
+async function initMap(store, body) {
+  const mapElement = document.createElement('div')
+  mapElement.id = 'map'
+  body.appendChild(mapElement)
+  let map = L.map(mapElement, {
     center: [51.505, -0.09],
     zoom: 13
   })
@@ -109,7 +81,7 @@ async function initMap() {
     attribution: "Open Street Map"
   }).addTo(map)
 
-  const spots = await fetchSpots()
+  const spots = await store.api.fetchSpots()
 
   const spotProto = {
     active: false
@@ -138,7 +110,7 @@ async function initMap() {
     if (spot.sound) {
       const audioNode = document.createElement('audio')
       audioNode.preload = 'none'
-      audioNode.src = `${rootUrl}${spot.sound.variants[0].path}`
+      audioNode.src = `${store.rootUrl}${spot.sound.variants[0].path}`
       audioNode.crossOrigin = "anonymous"
       audioNode.loop = spot.zone_options.loop
       audioNode.addEventListener('ended', () => console.log("ended", audioNode.src))
@@ -178,10 +150,9 @@ async function initMap() {
         L.circle(e.latlng, { radius: e.accuracy })
       ])
 
-      updateSurroundings({
+      updateSurroundings(store, {
         latitude: e.latlng.lat,
         longitude: e.latlng.lng,
-        spots
       })
 
       selfMarker.addTo(map)
@@ -204,42 +175,80 @@ async function initMap() {
   })
 }
 
-function initAutoplay() {
+function initAutoplay(store, body) {
   console.log("seting up unblocking button")
-  const autoplayUnblocker = document.getElementById('autoplay-unblocker')
+  const autoplayUnblocker = document.createElement('button')
+  autoplayUnblocker.textContent = "Play"
 
+  const unblockAutoplay = function unblockAutoplay({ target }) {
+    store.audioContext = new AudioContext()
+    const autoplaySound = new Audio()
+
+    body.appendChild(autoplaySound)
+    let source = store.audioContext.createMediaElementSource(autoplaySound)
+    source.connect(store.audioContext.destination)
+
+    store.audioContext.resume()
+    autoplaySound.play()
+    store.state = 'map'
+    console.log("unblocking autoplay")
+    autoplayUnblocker.remove()
+    handleState(store, document.body)
+  }
+  
   autoplayUnblocker.addEventListener('click', unblockAutoplay)
+  body.appendChild(autoplayUnblocker)
 }
 
-function unblockAutoplay({ target }) {
-  store.audioContext = new AudioContext()
-  const autoplaySound = document.getElementById('autoplay-sound')
 
-  let source = store.audioContext.createMediaElementSource(autoplaySound)
-  source.connect(store.audioContext.destination)
-
-  store.audioContext.resume()
-  autoplaySound.play()
-  store.state = 'map'
-  console.log("unblocking autoplay")
-  handleState(document.body)
-}
-
-async function handleState(body) {
+async function handleState(store, body) {
   switch (store.state) {
     case 'init':
-      body.classList.remove(...stateClasses)
+      body.classList.remove(...store.stateClasses)
       body.classList.add(`current-state-init`)
-      initAutoplay()
+      initAutoplay(store, body)
       break
     case 'map':
-      body.classList.remove(...stateClasses)
+      body.classList.remove(...store.stateClasses)
       body.classList.add(`current-state-map`)
-      initMap()
+      initMap(store, body)
       break
   }
 }
 
-document.addEventListener("DOMContentLoaded", async () => {
-  handleState(document.body)
+const isReady = new Promise((resolve) => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    resolve()
+  })
 })
+
+const storeProto = {
+  state: 'init',
+  spots: []
+}
+
+async function feld({ rootUrl, progressionId }) {
+  /* const rootUrl = 'https://192.168.2.118:5000' */
+  console.log('feld init', rootUrl, progressionId)
+  const states = ['init', 'map']
+  const api = new API({
+    url: `${rootUrl}/api`,
+    progressionId
+  })
+  const store = Object.create(storeProto, {
+    rootUrl: {
+      get() { return rootUrl }
+    },
+    api: {
+      get() { return api }
+    },
+    stateClasses: {
+      get() { return states.map((state) => `current-state-${state}`) }
+    }
+  })
+
+  await isReady
+  handleState(store, document.body)
+}
+
+window.feld = feld
