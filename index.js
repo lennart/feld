@@ -5,6 +5,7 @@ import './index.css'
 import 'leaflet/dist/leaflet.css'
 
 import './silence.mp3'
+import instructionsHTML from './instructions.html'
 import API from './api'
 
 async function updateSurroundings(store, { latitude, longitude }) {
@@ -178,7 +179,11 @@ async function initMap(store, body) {
 function initAutoplay(store, body) {
   console.log("seting up unblocking button")
   const autoplayUnblocker = document.createElement('button')
+  const instructionSection = document.createElement('section')
+
   autoplayUnblocker.textContent = "Play"
+  instructionSection.innerHTML = instructionsHTML
+  instructionSection.appendChild(autoplayUnblocker)
 
   const unblockAutoplay = function unblockAutoplay({ target }) {
     store.audioContext = new AudioContext()
@@ -192,12 +197,12 @@ function initAutoplay(store, body) {
     autoplaySound.play()
     store.state = 'map'
     console.log("unblocking autoplay")
-    autoplayUnblocker.remove()
+    instructionSection.remove()
     handleState(store, document.body)
   }
-  
+
   autoplayUnblocker.addEventListener('click', unblockAutoplay)
-  body.appendChild(autoplayUnblocker)
+  body.appendChild(instructionSection)
 }
 
 

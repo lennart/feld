@@ -43,6 +43,10 @@ module.exports = {
         options: {
           limit: 8192
         }
+      },
+      {
+        test: /\.html$/,
+        loader: 'html-loader'
       }
     ]
   },

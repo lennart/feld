@@ -6,6 +6,7 @@
   "author": "Lennart Melzer <lennart@melzer.it>",
   "license": "MIT",
   "dependencies": {
+    "html-loader": "^2.1.2",
     "leaflet": "^1.7.1",
     "regenerator-runtime": "^0.13.7"
   },
