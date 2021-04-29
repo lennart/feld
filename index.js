@@ -178,12 +178,10 @@ async function initMap(store, body) {
 
 function initAutoplay(store, body) {
   console.log("seting up unblocking button")
-  const autoplayUnblocker = document.createElement('button')
   const instructionSection = document.createElement('section')
 
-  autoplayUnblocker.textContent = "Play"
   instructionSection.innerHTML = instructionsHTML
-  instructionSection.appendChild(autoplayUnblocker)
+  const autoplayUnblocker = instructionSection.querySelector('button')
 
   const unblockAutoplay = function unblockAutoplay({ target }) {
     store.audioContext = new AudioContext()

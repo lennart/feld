@@ -8,10 +8,19 @@ html, body, #map {
     height: 100%;
 }
 
+* {
+    box-sizing: border-box;
+}
+
 .self-marker {
     width: 20px;
     height: 20px;
     background-color: red;
+}
+
+ol, ul {
+    padding: 0;
+    list-style-position: inside;
 }
 
 .stateful {
@@ -28,6 +37,225 @@ html, body, #map {
 
 .current-state-init {
     display: flex;
-    align-items: center;
+    padding: 1rem;
     justify-content: center;
+    height: auto;
+}
+
+
+@font-face {
+  font-family: 'Nunito';
+  font-style: normal;
+  font-weight: 600;
+  src: url(fonts/Nunito_800_normal.eot); /* http://fonts.gstatic.com/s/nunito/v16/XRXW3I6Li01BKofA6sKkZw.eot */
+  src: local('☺'),
+  url(fonts/Nunito_800_normal.eot?#iefix) format('embedded-opentype'), /* http://fonts.gstatic.com/s/nunito/v16/XRXW3I6Li01BKofA6sKkZw.eot */
+  url(fonts/Nunito_800_normal.woff2) format('woff2'), /* http://fonts.gstatic.com/s/nunito/v16/XRXW3I6Li01BKofA6sKkYw.woff2 */
+  url(fonts/Nunito_800_normal.woff) format('woff'), /* http://fonts.gstatic.com/s/nunito/v16/XRXW3I6Li01BKofA6sKkZQ.woff */
+  url(fonts/Nunito_800_normal.ttf) format('truetype'), /* http://fonts.gstatic.com/s/nunito/v16/XRXW3I6Li01BKofA6sKkZuHPeTo.ttf */
+  url(fonts/Nunito_800_normal.svg#Nunito_800_normal) format('svg'); /* http://fonts.gstatic.com/l/font?kit=XRXW3I6Li01BKofA6sKkZA&skey=52e177ab83d749aa&v=v16#Nunito */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a, a:visited, a:focus, a:active {
+   /* color: #fff; */
+}
+
+html, body, button {
+  font-family: 'Nunito';
+}
+
+html {
+  font-size: 3.8333333vw;
+}
+
+body {
+  /* color: #fff; */
+  /* text-shadow: 0 0 16px #f6c5c3; */
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+  line-height: 1.166666666666667;
+  /* background: url(img/feld-bg-motiv2.jpg); */
+  /* background-size: auto 160vh; */
+  /* background-position: top 80% left 40%; */
+  /* background-attachment: fixed; */
+}
+
+button {
+  font-size: 1rem;
+  color: #111;
+  margin-bottom: 1rem;
+}
+
+del {
+  text-shadow: none;
+}
+
+ol, ul {
+  margin-left: 2rem;
+}
+
+ol ol {
+  margin-left: 0;
+}
+
+ol ul {
+  margin-left: 0;
+}
+
+ul ol {
+  margin-left: 0;
+}
+
+ul ul {
+  margin-left: 0;
+}
+
+
+
+ul li::marker {
+  content: "_";
+}
+
+dl {
+  margin: 0 0 1rem 0;
+}
+
+dl > dd {
+  margin-bottom: 0;
+  margin-left: 2rem;
+}
+
+main {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+main > header {
+  margin: 2rem 1rem 3rem 1rem;
+}
+
+.two-thirds {
+  margin: 0 1rem;
+}
+
+.two-thirds section {
+  margin-bottom: 1rem;
+}
+
+h1,h2,h3,h4,h5,h6 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+h1 {
+  margin-bottom: 1rem;
+}
+
+img {
+  margin: 0 0 1rem 0;
+}
+
+p {
+  margin: 0 0 1rem 0;
+}
+
+p:last-child {
+  margin-bottom: 0;
+}
+
+footer {
+  font-size: 0.8rem;
+  margin-bottom: 2rem;
+  line-height: 1.2;
+}
+
+hr {
+  border: none;
+  border-top: 0.1rem solid #111;
+}
+
+.img-home {
+  max-width: 22.223333vw;
+  display: block;
+}
+
+.brand-text, .brand-image {
+  margin: 0;
+}
+.brand-text {
+  position: relative;
+}
+
+.brand-image {
+  display: block;
+  position: relative;
+  left: -0.6rem;
+  top: -0.8rem;
+  margin-bottom: -1.5rem;
+  margin-right: -1.4rem;
+  filter: invert(1) brightness(150%);
+}
+
+.sr-only {
+  visibility: hidden;
+  position: absolute;
+}
+
+@media (min-width: 500px) {
+  body {
+    background-size: auto 130vh;
+  }
+}
+
+@media (min-width: 700px) {
+  body {
+    background-size: auto 130vh;
+    background-position: top 100% left 40%;
+  }
+}
+
+@media (min-width: 800px) {
+  html {
+    font-size: 2.555555vw;
+  }
+  main > header {
+    max-width: 66.67vw;
+  }
+  .two-thirds {
+    max-width: 66.67vw;
+  }
+}
+
+@media (min-width: 1000px) {
+  body {
+    background-size: auto 120vh;
+    background-position: top 70% left 40%;
+  }
+}
+
+@media (min-width: 1100px) {
+  .brand-image {
+    left: -0.8rem;
+    top: -1.3rem;
+    margin-bottom: -2.25rem;
+    margin-right: -2rem;
+    margin-top: -0.4rem
+  }
+}
+
+button {
+    background: transparent;
+    border: 0.2rem solid #111;
+    border-radius: 0.125rem;
+    padding: 0.5rem;
+}
+
+strong {
+  text-transform: uppercase;
 }
