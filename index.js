@@ -8,10 +8,20 @@ import './silence.mp3'
 import instructionsHTML from './instructions.html'
 import API from './api'
 
+var _paq = window._paq = window._paq || [];
+
+window.onerror = function globalErrorHandler(msg, url, line, column, error) {
+  _paq.push(['trackEvent', 'Error', `${url}:${line}:${column} ${msg}`, error.stack])
+  console.error(error)
+  return false
+}
+
+window.onunhandledrejection = function globalUnhandledRejectionHandler(error) {
+  _paq.push(['trackEvent', 'UnhandledRejection', error.reason || 'unknown'])
+  console.error(error)
+}
+
 function trackMatomoEvent(action, name, value) {
-  if (!window._paq) {
-    return
-  }
   _paq.push(['trackEvent', 'Play Mode', action, name, value]);
 }
 
