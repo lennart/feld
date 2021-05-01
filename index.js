@@ -8,6 +8,13 @@ import './silence.mp3'
 import instructionsHTML from './instructions.html'
 import API from './api'
 
+function trackMatomoEvent(action, name, value) {
+  if (!window._paq) {
+    return
+  }
+  _paq.push(['trackEvent', 'Play Mode', action, name, value]);
+}
+
 async function updateSurroundings(store, { latitude, longitude }) {
   try {
     const surroundings = await store.api.fetchSurroundings({ latitude, longitude })
@@ -177,13 +184,13 @@ async function initMap(store, body) {
 }
 
 function initAutoplay(store, body) {
-  console.log("seting up unblocking button")
   const instructionSection = document.createElement('section')
 
   instructionSection.innerHTML = instructionsHTML
   const autoplayUnblocker = instructionSection.querySelector('button')
 
   const unblockAutoplay = function unblockAutoplay({ target }) {
+    trackMatomoEvent('Start')
     store.audioContext = new AudioContext()
     const autoplaySound = new Audio()
 
