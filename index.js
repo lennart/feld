@@ -1,6 +1,7 @@
 // see: https://github.com/parcel-bundler/parcel/issues/1762
 import 'regenerator-runtime/runtime'
 import L from 'leaflet'
+import { AudioContext } from 'standardized-audio-context'
 import './index.css'
 import 'leaflet/dist/leaflet.css'
 
