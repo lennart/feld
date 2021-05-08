@@ -23,7 +23,7 @@ window.onunhandledrejection = function globalUnhandledRejectionHandler(error) {
   console.error(error)
 }
 
-function trackMatomoEvent(action, name, value) {
+function trackMatomoEvent(action, name = 'activated', value) {
   _paq.push(['trackEvent', 'Play Mode', action, name, value]);
 }
 
@@ -164,7 +164,7 @@ async function initMap(store, body) {
   let lastMarker
   map.on('locationfound', (e) => {
     if (!locationFound) {
-      trackMatomoEvent('Location Found')
+      trackMatomoEvent('Location Found', `precision: ${e.accuracy}m`)
     }
 
     if (!e.latlng.equals(lastPosition)) {
@@ -206,7 +206,7 @@ function initAutoplay(store, body) {
   const autoplayUnblocker = instructionSection.querySelector('button')
 
   const unblockAutoplay = function unblockAutoplay({ target }) {
-    trackMatomoEvent('Start')
+    trackMatomoEvent('Start', 'FELD_')
     store.audioContext = new AudioContext()
     const autoplaySound = new Audio()
 
