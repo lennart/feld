@@ -20,7 +20,11 @@ html, body, #map {
 
 ol, ul {
     padding: 0;
-    list-style-position: inside;
+    list-style-position: outside;
+}
+
+.text-muted {
+  color: #555;
 }
 
 .stateful {
