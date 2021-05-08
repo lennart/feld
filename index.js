@@ -10,6 +10,7 @@ import instructionsHTML from './instructions.html'
 import API from './api'
 
 var _paq = window._paq = window._paq || [];
+let locationFound = false
 
 window.onerror = function globalErrorHandler(msg, url, line, column, error) {
   _paq.push(['trackEvent', 'Error', `${url}:${line}:${column} ${msg}`, error.stack])
@@ -162,6 +163,10 @@ async function initMap(store, body) {
 
   let lastMarker
   map.on('locationfound', (e) => {
+    if (!locationFound) {
+      trackMatomoEvent('Location Found')
+    }
+
     if (!e.latlng.equals(lastPosition)) {
       const icon = L.divIcon({ className: 'self-marker' })
       const selfMarker = L.featureGroup([
