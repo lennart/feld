@@ -23,8 +23,8 @@ window.onunhandledrejection = function globalUnhandledRejectionHandler(error) {
   console.error(error)
 }
 
-function trackMatomoEvent(action, name, value) {
-  _paq.push(['trackEvent', 'Play Mode', action, name, value]);
+function trackMatomoEvent(action, name) {
+  _paq.push(['trackEvent', 'Play Mode', action, name]);
 }
 
 async function updateSurroundings(store, { latitude, longitude }) {
