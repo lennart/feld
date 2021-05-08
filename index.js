@@ -23,7 +23,7 @@ window.onunhandledrejection = function globalUnhandledRejectionHandler(error) {
   console.error(error)
 }
 
-function trackMatomoEvent(action, name = 'activated', value) {
+function trackMatomoEvent(action, name, value) {
   _paq.push(['trackEvent', 'Play Mode', action, name, value]);
 }
 
@@ -164,6 +164,7 @@ async function initMap(store, body) {
   let lastMarker
   map.on('locationfound', (e) => {
     if (!locationFound) {
+      locationFound = true
       trackMatomoEvent('Location Found', `precision: ${e.accuracy}m`)
     }
 
