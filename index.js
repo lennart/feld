@@ -7,6 +7,7 @@ import 'leaflet/dist/leaflet.css'
 
 import './silence.mp3'
 import instructionsHTML from './instructions.html'
+import instructionsHTMLEnglish from './instructions.en.html'
 import API from './api'
 
 var _paq = window._paq = window._paq || [];
@@ -203,7 +204,7 @@ async function initMap(store, body) {
 function initAutoplay(store, body) {
   const instructionSection = document.createElement('section')
 
-  instructionSection.innerHTML = instructionsHTML
+  instructionSection.innerHTML = store.languageCode === 'en' ? instructionsHTMLEnglish : instructionsHTML
   const autoplayUnblocker = instructionSection.querySelector('button')
 
   const unblockAutoplay = function unblockAutoplay({ target }) {
@@ -254,7 +255,7 @@ const storeProto = {
   spots: []
 }
 
-async function feld({ rootUrl, progressionId }) {
+async function feld({ rootUrl, progressionId, languageCode }) {
   /* const rootUrl = 'https://192.168.2.118:5000' */
   console.log('feld init', rootUrl, progressionId)
   const states = ['init', 'map']
@@ -271,6 +272,11 @@ async function feld({ rootUrl, progressionId }) {
     },
     stateClasses: {
       get() { return states.map((state) => `current-state-${state}`) }
+    },
+    languageCode: {
+      get() {
+        return languageCode
+      }
     }
   })
 
