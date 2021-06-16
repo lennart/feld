@@ -98,8 +98,8 @@ async function initMap(store, body) {
     zoom: 13
   })
 
-  L.tileLayer("https://map.al0.de/tile/{z}/{x}/{y}.png", {
-    attribution: "Open Street Map"
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
   }).addTo(map)
 
   const spots = await store.api.fetchSpots()
