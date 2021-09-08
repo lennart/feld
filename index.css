@@ -46,6 +46,43 @@ ol, ul {
     height: auto;
 }
 
+#map {
+  z-index: 0;
+}
+
+.feld-map-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(0,0,0,0.5);
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.feld-map-overlay > button {
+  color: white;
+}
+
+.align-items-start {
+  align-items: start !important;
+}
+
+.feld-map-overlay section {
+  background: white;
+  margin: 1vmin;
+  padding: 1vmin;
+}
+
+.feld-map-overlay section .btn-close {
+  float: right;
+}
+
 
 @font-face {
   font-family: 'Nunito';
@@ -254,12 +291,44 @@ hr {
 }
 
 button {
-    background: transparent;
-    border: 0.2rem solid #111;
-    border-radius: 0.125rem;
-    padding: 0.5rem;
-    text-shadow: 0 0 0.25rem #f6c5c3;
-    box-shadow: 0 0 0.5rem 0.1rem #f6c5c3;
+  background: transparent;
+  border: 0.2rem solid #111;
+  border-radius: 0.125rem;
+  padding: 0.5rem;
+  text-shadow: 0 0 0.25rem #f6c5c3;
+  box-shadow: 0 0 0.5rem 0.1rem #f6c5c3;
+}
+
+.btn-white {
+  color: white;
+  border: 0.2rem solid white;
+}
+
+.btn-help {
+  color: #111;
+  border: 0.2rem solid #111;
+  line-height: 1;
+  background: white;
+}
+
+.btn-close {
+  line-height: 1;
+  padding-top: 0.4rem;
+}
+
+.leaflet-control-zoom {
+  border: 0.2rem solid #111 !important;
+  border-radius: 0.125rem;
+  text-shadow: 0 0 0.25rem #f6c5c3;
+  box-shadow: 0 0 0.5rem 0.1rem #f6c5c3;
+  font: 'Nunito' !important;
+}
+
+.leaflet-control-zoom-in, .leaflet-control-zoom-out {
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  width: 1.5rem !important;
+  height: 1.5rem !important;
 }
 
 strong {

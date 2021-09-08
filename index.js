@@ -28,7 +28,8 @@ function trackMatomoEvent(action, name) {
   _paq.push(['trackEvent', 'Play Mode', action, name]);
 }
 
-async function updateSurroundings(store, { latitude, longitude }) {
+async function updateSurroundings(store) {
+  const { latitude, longitude } = store
   try {
     const surroundings = await store.api.fetchSurroundings({ latitude, longitude })
 
@@ -89,6 +90,30 @@ async function updateSurroundings(store, { latitude, longitude }) {
   }
 }
 
+function initAudioNodes(store, body) {
+  store.spots = store.spots.map((spot) => {
+    if (spot.sound) {
+      const audioNode = document.createElement('audio')
+      audioNode.preload = 'none'
+      audioNode.src = `${store.rootUrl}${spot.sound.variants[0].path}`
+      audioNode.crossOrigin = "anonymous"
+      audioNode.loop = spot.loop
+      audioNode.addEventListener('ended', () => console.log("ended", audioNode.src))
+
+      const source = store.audioContext.createMediaElementSource(audioNode)
+      spot.source = source
+      spot.node = audioNode
+      spot.canPlay = true
+    } else {
+      spot.canPlay = false
+    }
+    return spot
+  })
+  if (store.locationFound) {
+    updateSurroundings(store)
+  }
+}
+
 async function initMap(store, body) {
   const mapElement = document.createElement('div')
   mapElement.id = 'map'
@@ -108,7 +133,7 @@ async function initMap(store, body) {
     active: false
   }
   store.spots = spots.map((spot) => {
-    let res = Object.create(spotProto, {
+    return Object.create(spotProto, {
       id: {
         get() { return spot.id }
       },
@@ -125,26 +150,13 @@ async function initMap(store, body) {
         get() {
           return this.node && !this.node.paused
         }
+      },
+      sound: {
+        get() {
+          return spot.sound
+        }
       }
     })
-
-    if (spot.sound) {
-      const audioNode = document.createElement('audio')
-      audioNode.preload = 'none'
-      audioNode.src = `${store.rootUrl}${spot.sound.variants[0].path}`
-      audioNode.crossOrigin = "anonymous"
-      audioNode.loop = spot.zone_options.loop
-      audioNode.addEventListener('ended', () => console.log("ended", audioNode.src))
-
-      const source = store.audioContext.createMediaElementSource(audioNode)
-      res.source = source
-      res.node = audioNode
-      res.canPlay = true
-    } else {
-      res.canPlay = false
-    }
-
-    return res
   })
 
   const spotCircles = spots.map(({ location: { latitude, longitude }, radius }) => {
@@ -166,6 +178,7 @@ async function initMap(store, body) {
   map.on('locationfound', (e) => {
     if (!locationFound) {
       locationFound = true
+      store.locationFound = true
       trackMatomoEvent('Location Found', `precision: ${e.accuracy}m`)
     }
 
@@ -176,10 +189,12 @@ async function initMap(store, body) {
         L.circle(e.latlng, { radius: e.accuracy })
       ])
 
-      updateSurroundings(store, {
-        latitude: e.latlng.lat,
-        longitude: e.latlng.lng,
-      })
+      store.latitude = e.latlng.lat
+      store.longitude = e.latlng.lng
+
+      if (store.AudioContext) {
+        updateSurroundings(store)
+      }
 
       selfMarker.addTo(map)
       if (lastMarker) {
@@ -195,53 +210,91 @@ async function initMap(store, body) {
       lastPosition = e.latlng
     }
   })
-  map.locate({
-    watch: true,
-    enableHighAccuracy: true
+
+  L.Control.FELD_Help = L.Control.extend({
+    onAdd: function(map) {
+      this.btn = L.DomUtil.create('button')
+      this.btn.classList.add('btn-help')
+      this.btn.textContent = "?"
+
+      L.DomEvent.on(this.btn, 'click', showHelp, { store, body })
+
+      return this.btn
+    },
+    onRemove: function(map) {
+      L.DomEvent.off(this.btn, 'click', showHelp, { store, body })
+    }
   })
+
+  L.control.feld_help = function(opts) {
+    return new L.Control.FELD_Help(opts)
+  }
+
+  L.control.feld_help({ position: 'topright' }).addTo(map)
+
+  store.map = map
+  if (!store.audioContext) {
+    await initAutoplay(store, body)
+
+    map.locate({
+      watch: true,
+      enableHighAccuracy: true
+    })
+    initAudioNodes(store, body)
+  }
 }
 
-function initAutoplay(store, body) {
+async function initAutoplay(store, body) {
+  const overlay = document.createElement('div')
+  overlay.classList.add('feld-map-overlay')
+  const autoplayUnblocker = document.createElement('button')
+  autoplayUnblocker.classList.add('btn-white')
+  autoplayUnblocker.textContent = 'Play'
+
+  const autoplayUnblocked = new Promise((resolve) => {
+    const unblockAutoplay = function unblockAutoplay({ target }) {
+      trackMatomoEvent('Start', 'FELD_')
+      store.audioContext = new AudioContext()
+      const autoplaySound = new Audio()
+
+      body.appendChild(autoplaySound)
+      let source = store.audioContext.createMediaElementSource(autoplaySound)
+      source.connect(store.audioContext.destination)
+
+      store.audioContext.resume()
+      autoplaySound.play()
+      store.state = 'map'
+      console.log("unblocking autoplay")
+      overlay.remove()
+      resolve()
+    }
+    autoplayUnblocker.addEventListener('click', unblockAutoplay)
+    overlay.appendChild(autoplayUnblocker)
+    body.appendChild(overlay)
+  })
+
+  return autoplayUnblocked
+}
+
+function showHelp() {
+  const overlay = document.createElement('div')
+  overlay.classList.add('feld-map-overlay')
+  overlay.classList.add('align-items-start')
   const instructionSection = document.createElement('section')
+  instructionSection.classList.add('overflow-x-scroll')
 
-  instructionSection.innerHTML = store.languageCode === 'en' ? instructionsHTMLEnglish : instructionsHTML
-  const autoplayUnblocker = instructionSection.querySelector('button')
+  instructionSection.innerHTML = this.store.languageCode === 'en' ? instructionsHTMLEnglish : instructionsHTML
+  const closeButtons = instructionSection.querySelectorAll('button')
 
-  const unblockAutoplay = function unblockAutoplay({ target }) {
-    trackMatomoEvent('Start', 'FELD_')
-    store.audioContext = new AudioContext()
-    const autoplaySound = new Audio()
-
-    body.appendChild(autoplaySound)
-    let source = store.audioContext.createMediaElementSource(autoplaySound)
-    source.connect(store.audioContext.destination)
-
-    store.audioContext.resume()
-    autoplaySound.play()
-    store.state = 'map'
-    console.log("unblocking autoplay")
-    instructionSection.remove()
-    handleState(store, document.body)
+  const closeHelp = function closeHelp({ target }) {
+    overlay.remove()
   }
 
-  autoplayUnblocker.addEventListener('click', unblockAutoplay)
-  body.appendChild(instructionSection)
-}
-
-
-async function handleState(store, body) {
-  switch (store.state) {
-    case 'init':
-      body.classList.remove(...store.stateClasses)
-      body.classList.add(`current-state-init`)
-      initAutoplay(store, body)
-      break
-    case 'map':
-      body.classList.remove(...store.stateClasses)
-      body.classList.add(`current-state-map`)
-      initMap(store, body)
-      break
+  for (const btn of closeButtons) {
+    btn.addEventListener('click', closeHelp)
   }
+  overlay.appendChild(instructionSection)
+  this.body.appendChild(overlay)
 }
 
 const isReady = new Promise((resolve) => {
@@ -251,12 +304,11 @@ const isReady = new Promise((resolve) => {
 })
 
 const storeProto = {
-  state: 'init',
+  state: 'map',
   spots: []
 }
 
 async function feld({ rootUrl, progressionId, languageCode }) {
-  /* const rootUrl = 'https://192.168.2.118:5000' */
   console.log('feld init', rootUrl, progressionId)
   const states = ['init', 'map']
   const api = new API({
@@ -281,7 +333,10 @@ async function feld({ rootUrl, progressionId, languageCode }) {
   })
 
   await isReady
-  handleState(store, document.body)
+  const body = document.body
+  body.classList.remove(...store.stateClasses)
+  body.classList.add(`current-state-map`)
+  initMap(store, body)
 }
 
 window.feld = feld
