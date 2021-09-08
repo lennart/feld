@@ -192,7 +192,7 @@ async function initMap(store, body) {
       store.latitude = e.latlng.lat
       store.longitude = e.latlng.lng
 
-      if (store.AudioContext) {
+      if (store.audioContext) {
         updateSurroundings(store)
       }
 
