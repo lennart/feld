@@ -198,10 +198,7 @@ async function initMap(store, body) {
 
       selfMarker.addTo(map)
       if (lastMarker) {
-        let fadingMarker = lastMarker
-        setTimeout(() => {
-          fadingMarker.removeFrom(map)
-        }, 10000)
+        lastMarker.removeFrom(map)
       }
       lastMarker = selfMarker
 
