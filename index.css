@@ -311,6 +311,13 @@ button {
   background: white;
 }
 
+.btn-center-view {
+  color: #111;
+  border: 0.2rem solid #111;
+  line-height: 1;
+  background: white;
+}
+
 .btn-close {
   line-height: 1;
   padding-top: 0.4rem;

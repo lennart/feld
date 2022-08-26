@@ -223,11 +223,31 @@ async function initMap(store, body) {
     }
   })
 
+  L.Control.CenterView = L.Control.extend({
+    onAdd: function(map) {
+      this.btn = L.DomUtil.create('button')
+      this.btn.classList.add('btn-center-view')
+      this.btn.textContent = "¤"
+
+      L.DomEvent.on(this.btn, 'click', centerViewToCurrentLocation, { store, body })
+
+      return this.btn
+    },
+    onRemove: function(map) {
+      L.DomEvent.off(this.btn, 'click', centerViewToCurrentLocation, { store, body })
+    }
+  })
+
   L.control.feld_help = function(opts) {
     return new L.Control.FELD_Help(opts)
   }
 
+  L.control.center_view = function(opts) {
+    return new L.Control.CenterView(opts)
+  }
+
   L.control.feld_help({ position: 'topright' }).addTo(map)
+  L.control.center_view({ position: 'topleft' }).addTo(map)
 
   store.map = map
   if (!store.audioContext) {
@@ -271,6 +291,10 @@ async function initAutoplay(store, body) {
   })
 
   return autoplayUnblocked
+}
+
+function centerViewToCurrentLocation() {
+  this.store.map.locate({ setView: true, maxZoom: 16 })
 }
 
 function showHelp() {
