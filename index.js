@@ -124,7 +124,9 @@ async function initMap(store, body) {
   })
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>'
+    attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+    maxNativeZoom: 18,
+    maxZoom: 20
   }).addTo(map)
 
   const spots = await store.api.fetchSpots()
