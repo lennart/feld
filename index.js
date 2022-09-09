@@ -179,6 +179,7 @@ async function initMap(store, body) {
     if (!locationFound) {
       locationFound = true
       store.locationFound = true
+      map.fitBounds(spotFeatureGroup.getBounds())
       trackMatomoEvent('Location Found', `precision: ${e.accuracy}m`)
     }
 
@@ -295,6 +296,15 @@ async function initAutoplay(store, body) {
 
 function centerViewToCurrentLocation() {
   this.store.map.locate({ setView: true, maxZoom: 16 })
+  console.log("locating you on the map")
+  this.store.map.once('locationfound', () => {
+    console.log("center map to current location")
+    this.store.map.stopLocate()
+    this.store.map.locate({
+      watch: true,
+      enableHighAccuracy: true
+    })
+  })
 }
 
 function showHelp() {
