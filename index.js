@@ -184,6 +184,12 @@ async function initMap(store, body) {
       map.fitBounds(spotFeatureGroup.getBounds())
       trackMatomoEvent('Location Found', `precision: ${e.accuracy}m`)
     }
+    store.locationHistory.push({
+      timestamp: e.timestamp,
+      accuracy: e.accuracy,
+      latitude: e.latitude,
+      longitude: e.longitude,
+    })
 
     if (!e.latlng.equals(lastPosition)) {
       const icon = L.divIcon({ className: 'self-marker' })
@@ -262,6 +268,19 @@ async function initMap(store, body) {
     })
     initAudioNodes(store, body)
   }
+
+  window.addEventListener('hashchange', () => {
+    console.log('hash changed', window.location.hash)
+    if (window.location.hash === '#download-route') {
+      const content = `data:text/plain,${encodeURI(JSON.stringify(store.locationHistory))}`
+      console.log('downloading route', content)
+      const last = store.locationHistory[store.locationHistory.length - 1]
+      const here = L.latLng(last.latitude, last.longitude)
+      L.popup().setLatLng(here).setContent(
+        ` <a href='${content}' download='net_compose_route.json'>Download Route</a>`
+      ).openOn(map)
+    }
+  })
 }
 
 async function initAutoplay(store, body) {
@@ -348,7 +367,11 @@ async function feld({ rootUrl, progressionId, languageCode }) {
     url: `${rootUrl}/api`,
     progressionId
   })
+  const locationHistory = []
   const store = Object.create(storeProto, {
+    locationHistory: {
+      get() { return locationHistory }
+    },
     rootUrl: {
       get() { return rootUrl }
     },
